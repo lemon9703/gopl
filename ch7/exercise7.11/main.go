@@ -85,7 +85,7 @@ func (db database) update(w http.ResponseWriter, req *http.Request) {
 	_, ok := db[item]
 	if !ok {
 		w.WriteHeader(http.StatusNotFound)
-		fmt.Fprintf("%s isn'exist\n", item)
+		fmt.Fprintf(w, "%s isn'exist\n", item)
 	} else {
 		db[item] = dollars(p)
 	}
