@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net"
+	"time"
 )
 
 type client chan<- string // an outgoing message channel
@@ -34,6 +35,8 @@ func broadcaster() {
 	}
 }
 
+const timeout = 5 * time.Minute
+
 func handleConn(conn net.Conn) {
 	ch := make(chan string) // outgoing client message
 	go clientWriter(conn, ch)
@@ -43,9 +46,16 @@ func handleConn(conn net.Conn) {
 	messages <- who + "has arrived"
 	entering <- ch
 
+	timer := time.NewTimer(timeout)
+	go func() {
+		<-timer.C
+		conn.Close()
+	}()
+
 	input := bufio.NewScanner(conn)
 	for input.Scan() {
 		messages <- who + ": " + input.Text()
+		timer.Reset(timeout)
 	}
 
 	// NOTE: ignoring potential errors from input.Err()
